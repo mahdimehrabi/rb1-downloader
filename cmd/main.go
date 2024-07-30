@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/rabbitmq/amqp091-go"
@@ -13,7 +14,7 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdin, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 	env := godotenv.NewEnv()
 	env.Load()
 	ampqConn, err := amqp091.Dial(env.AMQP)
@@ -33,6 +34,8 @@ func main() {
 		err = ch.QueueBind(q.Name, "scrap."+t, env.ImageExchange, false, nil)
 		FatalOnError(err)
 	}
+
+	fmt.Println(env.MinioHost)
 
 	minioClient, err := minio.New(env.MinioHost, &minio.Options{
 		Creds:  credentials.NewStaticV4(env.MinioAccessToken, env.MinioSecret, ""),
